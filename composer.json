@@ -16,10 +16,6 @@
     },
     "require": {
         "illuminate/support": "~5",
-        "illuminate/foundation" : "~5",
-        "illuminate/routing" : "~5",
-        "illuminate/http" : "~5",
-        "illuminate/database" : "~5"
     }
 
 }
