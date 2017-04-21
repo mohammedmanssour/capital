@@ -1,0 +1,25 @@
+{
+    "name": "helilabs/heli-developement-helpers",
+    "description": "Laravel package that provides set of classes to make use of common design patterns like (Repository Pattern, Factory Pattern).",
+    "keywords": ["laravel", "Design Patterns","Repository Pattern","Factory Pattern","curd controller"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mohammed Manssour",
+            "email": "manssour.mohammed@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Helilabs\\HDH\\": "src/"
+        }
+    },
+    "require": {
+        "illuminate/support": "~5",
+        "illuminate/foundation" : "~5",
+        "illuminate/routing" : "~5",
+        "illuminate/http" : "~5",
+        "illuminate/database" : "~5"
+    }
+
+}
