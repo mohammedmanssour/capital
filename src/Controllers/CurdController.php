@@ -114,6 +114,14 @@ Class CurdController extends BaseController{
 	}
 
 
+	public function show( $id ){
+		$model = $this->sourceRepository->where(['id'=>$id])->first();
+		return view( $this->generateViewPath('show'),[
+			'model' => $model
+		]);
+	}
+
+
 	public function destroy( $id ){
 		$model = $this->findModel( $id );
 		$model->delete();

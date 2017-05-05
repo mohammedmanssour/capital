@@ -21,8 +21,6 @@ abstract Class CurdCreator{
 		$this->request = $request;
 
 		$this->interface = $interface;
-
-		$this->doAction();
 	}
 
 	public function defaultArgs(){
