@@ -10,11 +10,11 @@ This package was built to get Helilabs start developing projects fast. and force
 ### Installation
 * just require this package in your `composer file` like this
 ```
-"helilabs/heli-developement-helpers" : "0.1.0"
+"helilabs/heli-developement-helpers" : "0.2-alpha"
 ```
 
 ### A Word about docmentation
-This classes were mainly made for Helilabs team (because we're think they're nice and effective) and you're free to use them in any way you want
+This classes were mainly made for [Helilabs team](http://helilabs.com/) (because we're think they're nice and effective) and you're free to use them in any way you want
 but we offer no guarantee when you use them.
 
 Right now we offer no documentaion for these classes so its on you to explore but we're working to write documentaion as soon as possible and we think it will be available on our site on 15-05-2017
