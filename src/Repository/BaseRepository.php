@@ -3,7 +3,7 @@ namespace Helilabs\HDH\Repository;
 
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 
-Class BaseRepository implements RepositoryInterface{
+Class BaseRepository implements RepositoryContract{
 
 	public $query;
 

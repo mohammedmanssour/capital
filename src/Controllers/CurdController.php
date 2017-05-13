@@ -9,8 +9,8 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 use Illuminate\Http\Request;
 
-use Helilabs\HDH\CURD\CurdFactoryInterface;
-use Helilabs\HDH\Repositories\RepositoryInterface;
+use Helilabs\HDH\CURD\CurdFactoryContract;
+use Helilabs\HDH\Repository\RepositoryContract;
 
 Class CurdController extends BaseController{
 
@@ -26,7 +26,7 @@ Class CurdController extends BaseController{
 	 * used to prepare getting the data
 	 * You can manipulate this in counstruct and in handleSourceRepository function
 	 * Tip: use handleSourceRepository to manipulate for auth condition because construct has no auth in it
-	 * @var RepositoryInterface
+	 * @var Helilabs\HDH\Repository\RepositoryContract
 	 */
 	public $sourceRepository;
 
@@ -49,8 +49,8 @@ Class CurdController extends BaseController{
 
 	/**
 	 * This function was added to provide more flexibility when building the model facoty
-	 * @param  RepositoryInterface $sourceRepository used to prepare getting the data
-	 * @return RepositoryInterface $sourceRepository used to prepare getting the
+	 * @param  Helilabs\HDH\Repository\RepositoryContract $sourceRepository used to prepare getting the data
+	 * @return Helilabs\HDH\Repository\RepositoryContract $sourceRepository used to prepare getting the
 	 */
 	public function handleSourceRepository(){
 		return $this->sourceRepository;
@@ -58,33 +58,35 @@ Class CurdController extends BaseController{
 
 	/**
 	 * This function was added to provide more flexibility when building the model facoty
-	 * @return CurdFactoryInterface Model Facoty used on add & edit
+	 * @return Helilabs\HDH\CURD\CurdFactoryContract Model Facoty used on add & edit
 	 */
-	public function handleModelFactory( CurdFactoryInterface $modelFactory ){
+	public function handleModelFactory( CurdFactoryContract $modelFactory ){
 		return $modelFactory;
 	}
-
 
 
 	/**
 	 * Show all models provided with pagination
 	 * @return View
 	 */
-	public function index( ){
+	public function index(){
+
 		return view($this->generateViewPath('index'), [
 			'models' => $this->handleSourceRepository( $this->sourceRepository )->get()
 		]);
 	}
+
 
 	/**
 	 * get the create page view
 	 * @return View
 	 */
 	public function create(){
+
 		return view( $this->generateViewPath( 'create' ) );
 	}
 
-	public function store( Request $request, CurdFactoryInterface $modelFactory ){
+	public function store( Request $request, CurdFactoryContract $modelFactory ){
 		$redirect = $this->handleModelFactory( $modelFactory )
 					->setRequest( $request )
 					->setArgs(['action'=> 'new' ])
@@ -95,14 +97,14 @@ Class CurdController extends BaseController{
 		return $redirect;
 	}
 
-	public function edit( Request $request, CurdFactoryInterface $modelFactory, $id ){
+	public function edit( Request $request, $id ){
 		$model = $this->findModel( $id );
 		return view( $this->generateViewPath('edit'),[
 			'model' => $model
 		]);
 	}
 
-	public function update( Request $request, CurdFactoryInterface $modelFactory, $id ){
+	public function update( Request $request, CurdFactoryContract $modelFactory, $id ){
 		$redirect = $this->handleModelFactory( $modelFactory )
 					->setRequest( $request )
 					->setArgs(['action'=> 'edit', 'id' => $id ])

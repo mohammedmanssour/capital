@@ -4,7 +4,7 @@ namespace Helilabs\HDH\CURD;
 
 use Illuminate\Http\Request;
 
-abstract Class CurdCreator{
+abstract Class CurdCreator implements CurdCreatorContract{
 	
 	public $args;
 
@@ -12,15 +12,21 @@ abstract Class CurdCreator{
 
 	public $request;
 
-	public $interface;
+	public $interface = 'web';
 
-	public function __construct(Request $request, array $args = array(), $interface = 'web' ){
-
+	public function setArgs( $args ){
 		$this->args = array_merge($this->defaultArgs(), $args );
+		return $this;
+	}
 
+	public function setRequest( $request ){
 		$this->request = $request;
+		return $this;
+	}
 
+	public function setInterface( $interface ){
 		$this->interface = $interface;
+		return $this;
 	}
 
 	public function defaultArgs(){
@@ -30,13 +36,14 @@ abstract Class CurdCreator{
 		];
 	}
 
-	public function setInterface( $interface ){
-		$this->interface = $interface;
+	/**
+	 * The Reason behind this is to make creater only creates and leave the job of finding for the proxy class "CurdFactory"
+	 * @param Helilabs\HDH\AppBaseModel $model
+	 */
+	public function setModel( $model ){
+		$this->model = $model;
 		return $this;
 	}
 
 	abstract function doAction();
-
-	public abstract function doTheRest();
-
 }
