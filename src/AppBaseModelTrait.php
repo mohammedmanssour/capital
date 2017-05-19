@@ -37,13 +37,22 @@ trait AppBaseModelTrait{
 		return [];
 	}
 
+	/**
+	 * Allows you to validate whatever you want before saving
+	 */
+	public function setAttrs( $attrs ){
+		$this->attrs = $attrs;
+		return $this;
+	}
+
     /**
      * Enhancing Save Method
      */
     public function save( array $options = array())
 	{
-		
-		$this->attrs = $this->getAttributes();
+		if( !$this->attrs ){
+			$this->attrs = $this->getAttributes();
+		}
 
 		if($this->validate && !$this->validate()){
 			return false;

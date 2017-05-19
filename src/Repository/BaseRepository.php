@@ -53,7 +53,7 @@ Class BaseRepository implements RepositoryContract{
 			return $this;
 		}
 
-		return $callback( $this->query );
+		return $callback( $this );
 	}
 
 	/**

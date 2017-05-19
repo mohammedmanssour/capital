@@ -123,7 +123,6 @@ abstract Class CurdFactory implements CurdFactoryContract{
 		try{
 
 			$this->findOrCreateModel();
-
 			$this->curdCreator
 			 	->setRequest( $this->request )
 			 	->setArgs( $this->args )
@@ -139,7 +138,7 @@ abstract Class CurdFactory implements CurdFactoryContract{
 			}
 
 			$this->afterSuccessCallback();
-			return redirect( $this->redirectOnSuccess() );
+			return $this->redirectOnSuccess();
 
 		}catch( \Exception $e ){
 
