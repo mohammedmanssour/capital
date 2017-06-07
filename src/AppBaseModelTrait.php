@@ -1,6 +1,6 @@
 <?php
 
-namespace Helilabs\HDH;
+namespace Helilabs\Capital;
 
 use Validator;
 

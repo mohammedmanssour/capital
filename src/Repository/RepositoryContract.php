@@ -1,6 +1,6 @@
 <?php
 
-namespace Helilabs\HDH\Repository;
+namespace Helilabs\Capital\Repository;
 
 Interface RepositoryContract{
 	
