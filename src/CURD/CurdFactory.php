@@ -1,9 +1,9 @@
 <?php
  
-namespace Helilabs\HDH\CURD;
+namespace Helilabs\Capital\CURD;
 
 use Illuminate\Http\Request;
-use Helilabs\HDH\Repository\RepositoryContract;
+use Helilabs\Capital\Repository\RepositoryContract;
 
 abstract Class CurdFactory implements CurdFactoryContract{
 
@@ -20,7 +20,7 @@ abstract Class CurdFactory implements CurdFactoryContract{
 
 	/**
 	 * Model to pase to Creater Find it or create using the "findOrCreateModel" or you can just pass it through setModel
-	 * @var Helilabs\HDH\AppBaseModel;
+	 * @var Helilabs\Capital\AppBaseModel;
 	 */
 	public $model;
 
@@ -44,20 +44,20 @@ abstract Class CurdFactory implements CurdFactoryContract{
 
 	/**
 	 * Source Repository
-	 * @var Helilabs\HDH\Repository\RepositoryContract;
+	 * @var Helilabs\Capital\Repository\RepositoryContract;
 	 */
 	public $sourceRepository;
 
 	/**
 	 * MainCreater/Editor of the model
-	 * @var Helilabs\HDH\CURD\CurdCreatorContract
+	 * @var Helilabs\Capital\CURD\CurdCreatorContract
 	 */
 	public $curdCreator;
 
 	/**
 	 * Bind one of the repositories to interface
-	 * @param Helilabs\HDH\Repository\RepositoryContract $sourceRepository SourceRepository to fetch model through
-	 * @param Helilabs\HDH\CURD\CurdCreatorContract $curdCreator MainCreater/Editor of the model
+	 * @param Helilabs\Capital\Repository\RepositoryContract $sourceRepository SourceRepository to fetch model through
+	 * @param Helilabs\Capital\CURD\CurdCreatorContract $curdCreator MainCreater/Editor of the model
 	 */
 	public function __construct( RepositoryContract $sourceRepository, CurdCreatorContract $curdCreator){
 		$this->sourceRepository = $sourceRepository;
@@ -86,7 +86,7 @@ abstract Class CurdFactory implements CurdFactoryContract{
 
 	/**
 	 * use this instead of findOrCreateModel to pass model from outsite Curd
-	 * @param HeliLabs\HDH\AppBaseModel $model [description]
+	 * @param HeliLabs\Capital\AppBaseModel $model [description]
 	 */
 	public function setModel( $model ){
 		$this->model = $model;
@@ -95,7 +95,7 @@ abstract Class CurdFactory implements CurdFactoryContract{
 
 	/**
 	 * Creates the Model or 
-	 * @return $this Helilabs\HDH\CurdFactory
+	 * @return $this Helilabs\Capital\CurdFactory
 	 */
 	public function findOrCreateModel(){
 		if( $this->args['action'] == 'new' ){
@@ -112,7 +112,7 @@ abstract Class CurdFactory implements CurdFactoryContract{
 			throw new \Exception( 'id not provided' );
 		}
 
-		$this->model = $this->sourceRepository->where(['id' =>  $this->args['id'] ])->first();
+		$this->model = $this->sourceRepository->where('id' , $this->args['id'] )->first();
 		if( !$this->model ){
 			throw new \Exeption( 'Model Not Found' );
 		}
@@ -131,10 +131,10 @@ abstract Class CurdFactory implements CurdFactoryContract{
 			 	->doAction();
 
 			if($this->interface == 'api'){
-				return [
+				return response()->json([
 					'code' => 1,
 					'message' => $this->message
-				];
+				]);
 			}
 
 			$this->afterSuccessCallback();
@@ -143,20 +143,20 @@ abstract Class CurdFactory implements CurdFactoryContract{
 		}catch( \Exception $e ){
 
 			if($this->interface == 'api'){
-				return [
+				return response()->json([
 					'code' => 0,
 					'message' => $e->getMessage()
-				];
+				]);
 			}
 
 			$this->afterFailureCallback( $e->getMessage() );
-			return redirect()->back()->withInput()->withErrors();
+			return redirect()->back()->withInput()->withErrors( $this->curdCreator->getModel()->getValidator() );
 		}
 	}
 
 	/**
 	 * Create New Model from the Model
-	 * @return Helilabs\HDH\CURD\CurdFactory $this
+	 * @return Helilabs\Capital\CURD\CurdFactory $this
 	 */
 	public abstract function createModel();
 
@@ -168,14 +168,14 @@ abstract Class CurdFactory implements CurdFactoryContract{
 
 	/**
 	 * Function to be excuted after operation success on web interface
-	 * @return Helilabs\HDH\CURD\CurdFactory $this
+	 * @return Helilabs\Capital\CURD\CurdFactory $this
 	 */
 	public abstract function afterSuccessCallback();
 
 
 	/**
 	 * Function to be excuted after operation failure on web interface
-	 * @return Helilabs\HDH\CURD\CurdFactory $this
+	 * @return Helilabs\Capital\CURD\CurdFactory $this
 	 */
 	public abstract function afterFailureCallback( $errorMessage );
 

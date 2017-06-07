@@ -3,6 +3,7 @@
 namespace Helilabs\Capital;
 
 use Validator;
+use Helilabs\Capital\Helpers\ErrorParser;
 
 trait AppBaseModelTrait{
 
@@ -24,6 +25,8 @@ trait AppBaseModelTrait{
      * @var boolean 
      */
     public $validate = true;
+
+    private $validator;
 
     /**
      * List of Callbacks to be excuted beforeSaving and after the validation
@@ -73,50 +76,30 @@ trait AppBaseModelTrait{
      * validate input according to rules
      */
     public function validate(){
-		$validator = Validator::make($this->attrs,$this->rules());
-		if ($validator->fails()) {
-			$this->errors = $validator->messages()->toArray();
+		$this->validator = Validator::make($this->attrs,$this->rules());
+		if ($this->validator->fails()) {
+			$this->errors = $this->validator->messages()->toArray();
 			return false;
 		}
 		return true;
+	}
+
+	public function getValidator(){
+		return $this->validator;
 	}
 
     /**
      * getting Errors as Html 
      */
     public function getErrors(){
-		if($this->errors){
-			$html = '<p>'.trans('messages.fix_errors').'</p>';
-			$html .= '<ul>';
-			foreach($this->errors as $attrs_errors){
-				if(empty($attrs_errors)){
-					continue;
-				}
-				foreach($attrs_errors as $err){
-					$html .= '<li> '.$err.' </li>';
-				}
-			}
-			$html .= '</ul>';
-			return $html;
-		}
-		return [];
+		ErrorParser::parse( $this->errors )->toHtmlUlList();
 	}
 
     /**
      * getteing Errors as Array
      */
     public function getErrorsAsArray(){
-		$errors = [];
-		foreach($this->errors as $attrs_errors){
-			if(empty($attrs_errors)){
-				continue;
-			}
-			foreach($attrs_errors as $err){
-				$errors[] = $err;
-			}
-		}
-
-		return $errors;
+		ErrorParser::parse( $this->errors )->toSimpleArray();
 	}
 
     /**

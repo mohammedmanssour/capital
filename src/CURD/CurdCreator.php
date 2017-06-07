@@ -1,6 +1,6 @@
 <?php
 
-namespace Helilabs\HDH\CURD;
+namespace Helilabs\Capital\CURD;
 
 use Illuminate\Http\Request;
 
@@ -38,7 +38,7 @@ abstract Class CurdCreator implements CurdCreatorContract{
 
 	/**
 	 * The Reason behind this is to make creater only creates and leave the job of finding for the proxy class "CurdFactory"
-	 * @param Helilabs\HDH\AppBaseModel $model
+	 * @param Helilabs\Capital\AppBaseModel $model
 	 */
 	public function setModel( $model ){
 		$this->model = $model;

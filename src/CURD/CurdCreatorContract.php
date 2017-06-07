@@ -1,6 +1,6 @@
 <?php
 
-namespace Helilabs\HDH\CURD;
+namespace Helilabs\Capital\CURD;
 
 interface CurdCreatorContract{
 	

@@ -1,6 +1,6 @@
 <?php
 
-namespace Helilabs\HDH\CURD;
+namespace Helilabs\Capital\CURD;
 
 /**
  * Use this simple classes for simple curd where you don't need complex things when creatings
