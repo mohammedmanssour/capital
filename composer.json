@@ -1,5 +1,5 @@
 {
-    "name": "helilabs/heli-developement-helpers",
+    "name": "helilabs/capital",
     "description": "Laravel package that provides set of classes to make use of common design patterns like (Repository Pattern, Factory Pattern).",
     "keywords": ["laravel", "Design Patterns","Repository Pattern","Factory Pattern","curd controller"],
     "license": "MIT",
