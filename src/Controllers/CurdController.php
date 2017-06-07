@@ -1,6 +1,6 @@
 <?php
 
-namespace Helilabs\HDH\Controllers;
+namespace Helilabs\Capital\Controllers;
 
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
@@ -9,8 +9,8 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 use Illuminate\Http\Request;
 
-use Helilabs\HDH\CURD\CurdFactoryContract;
-use Helilabs\HDH\Repository\RepositoryContract;
+use Helilabs\Capital\CURD\CurdFactoryContract;
+use Helilabs\Capital\Repository\RepositoryContract;
 
 Class CurdController extends BaseController{
 
@@ -26,7 +26,7 @@ Class CurdController extends BaseController{
 	 * used to prepare getting the data
 	 * You can manipulate this in counstruct and in handleSourceRepository function
 	 * Tip: use handleSourceRepository to manipulate for auth condition because construct has no auth in it
-	 * @var Helilabs\HDH\Repository\RepositoryContract
+	 * @var Helilabs\Capital\Repository\RepositoryContract
 	 */
 	public $sourceRepository;
 
@@ -49,8 +49,8 @@ Class CurdController extends BaseController{
 
 	/**
 	 * This function was added to provide more flexibility when building the model facoty
-	 * @param  Helilabs\HDH\Repository\RepositoryContract $sourceRepository used to prepare getting the data
-	 * @return Helilabs\HDH\Repository\RepositoryContract $sourceRepository used to prepare getting the
+	 * @param  Helilabs\Capital\Repository\RepositoryContract $sourceRepository used to prepare getting the data
+	 * @return Helilabs\Capital\Repository\RepositoryContract $sourceRepository used to prepare getting the
 	 */
 	public function handleSourceRepository(){
 		return $this->sourceRepository;
@@ -58,7 +58,7 @@ Class CurdController extends BaseController{
 
 	/**
 	 * This function was added to provide more flexibility when building the model facoty
-	 * @return Helilabs\HDH\CURD\CurdFactoryContract Model Facoty used on add & edit
+	 * @return Helilabs\Capital\CURD\CurdFactoryContract Model Facoty used on add & edit
 	 */
 	public function handleModelFactory( CurdFactoryContract $modelFactory ){
 		return $modelFactory;
