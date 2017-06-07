@@ -11,7 +11,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "Helilabs\\HDH\\": "src/"
+            "Helilabs\\Capital\\": "src/"
         }
     },
     "require": {
