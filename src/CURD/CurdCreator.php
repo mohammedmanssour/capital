@@ -45,5 +45,9 @@ abstract Class CurdCreator implements CurdCreatorContract{
 		return $this;
 	}
 
+	public function getModel(){
+		return $this->model;
+	}
+
 	abstract function doAction();
 }

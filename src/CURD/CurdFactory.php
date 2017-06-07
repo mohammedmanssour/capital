@@ -150,7 +150,7 @@ abstract Class CurdFactory implements CurdFactoryContract{
 			}
 
 			$this->afterFailureCallback( $e->getMessage() );
-			return redirect()->back()->withInput();
+			return redirect()->back()->withInput()->withErrors();
 		}
 	}
 
