@@ -10,7 +10,7 @@ This package was built to get Helilabs start developing projects fast. and force
 ### Installation
 * just require this package in your `composer file` like this
 ```
-"helilabs/Capital" : "0.3"
+"helilabs/Capital" : "0.3.1"
 ```
 
 ### A Word about docmentation
