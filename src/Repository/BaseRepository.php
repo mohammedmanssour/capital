@@ -8,6 +8,12 @@ Class BaseRepository implements RepositoryContract{
 	public $query;
 
 	/**
+	 * if you want to use more complicated query other than customizations added to simple query enable this variable
+	 * @var boolean
+	 */
+	public $customizaQuery = false;
+
+	/**
 	 * Because Eleqount has alot of methods that we can't override here
 	 * we made this magic function to excute Eleqount methods on Repository with affecting on $query
 	 * @param  string $method the method that was called 
@@ -15,6 +21,14 @@ Class BaseRepository implements RepositoryContract{
 	 * @return Helilabs\Capital\BaseRepository    this
 	 */
 	public function __call( $method, $args ){
+
+		/**
+		 * if customize Query isn't enable then add simpleQuery
+		 */
+		if( !$this->customizaQuery ){
+			$this->simpleQuery();
+		}
+
 		// methods that are used to fetch the results of the query not for building
 		$fetchMethods = collect([
 			'first', 'get', 'paginate', 'count', 'min', 'max', 'find', 'findOrFail'
@@ -25,6 +39,19 @@ Class BaseRepository implements RepositoryContract{
 		}
 
 		$this->query->{$method}(...$args);
+		return $this;
+	}
+
+	public function enableCustomization(){
+		$this->customizaQuery = true;
+		return $this;
+	}
+
+	/**
+	 * A constrains you add to the query every time you use it
+	 * @return $this
+	 */
+	public function simpleQuery(){
 		return $this;
 	}
 
