@@ -2,8 +2,6 @@
 
 namespace Helilabs\Capital\CURD;
 
-use Illuminate\Http\Request;
-
 abstract Class CurdCreator implements CurdCreatorContract{
 	
 	public $args;
@@ -19,6 +17,10 @@ abstract Class CurdCreator implements CurdCreatorContract{
 		return $this;
 	}
 
+	/**
+	 * set Request Date as Collection of Data
+	 * @param Illuminate\Support\Collection $request request data
+	 */
 	public function setRequest( $request ){
 		$this->request = $request;
 		return $this;

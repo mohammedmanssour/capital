@@ -2,7 +2,8 @@
  
 namespace Helilabs\Capital\CURD;
 
-use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Helilabs\Capital\Exceptions\JsonException;
 use Helilabs\Capital\Repository\RepositoryContract;
 
 abstract Class CurdFactory implements CurdFactoryContract{
@@ -74,7 +75,11 @@ abstract Class CurdFactory implements CurdFactoryContract{
 		return $this;
 	}
 
-	public function setRequest( Request $request ){
+	/**
+	 * set Request Data to be parsed
+	 * @param Illuminate\Support\Collection $request [description]
+	 */
+	public function setRequest( Collection $request ){
 		$this->request = $request;
 		return $this;
 	}
@@ -109,13 +114,28 @@ abstract Class CurdFactory implements CurdFactoryContract{
 
 	public function findModel(){
 		if( !isset( $this->args['id'] )){
-			throw new \Exception( 'id not provided' );
+			$message = 'id not provided';
+
+			if( $this->interface == 'api' ){
+				throw new JsonException( ['error' => $message ] );
+			}
+
+			throw new \Exception( $message );
 		}
 
 		$this->model = $this->sourceRepository->where('id' , $this->args['id'] )->first();
+		
 		if( !$this->model ){
-			throw new \Exeption( 'Model Not Found' );
+
+			$message = 'Model Not Found' ;
+
+			if( $this->interface == 'api' ){
+				throw new JsonException( ['error' => $message ] );
+			}
+
+			throw new \Exeption( $message );
 		}
+
 		return $this;
 	}
 
@@ -140,15 +160,14 @@ abstract Class CurdFactory implements CurdFactoryContract{
 			$this->afterSuccessCallback();
 			return $this->redirectOnSuccess();
 
+		}catch( JsonException $e ){
+			//Json Exception are thrown in api interface
+			return response()->json([
+				'code' => 0,
+				'message' => $e->getDecodedMessage()
+			]);
+			
 		}catch( \Exception $e ){
-
-			if($this->interface == 'api'){
-				return response()->json([
-					'code' => 0,
-					'message' => $e->getMessage()
-				]);
-			}
-
 			$this->afterFailureCallback( $e->getMessage() );
 			return redirect()->back()->withInput()->withErrors( $this->curdCreator->getModel()->getValidator() );
 		}

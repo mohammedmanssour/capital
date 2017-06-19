@@ -88,7 +88,7 @@ Class CurdController extends BaseController{
 
 	public function store( Request $request, CurdFactoryContract $modelFactory ){
 		$redirect = $this->handleModelFactory( $modelFactory )
-					->setRequest( $request )
+					->setRequest( collect( $request->all() ) )
 					->setArgs(['action'=> 'new' ])
 					->setSuccessMessage( $this->successMessage )
 					->doTheJob();
@@ -106,7 +106,7 @@ Class CurdController extends BaseController{
 
 	public function update( Request $request, CurdFactoryContract $modelFactory, $id ){
 		$redirect = $this->handleModelFactory( $modelFactory )
-					->setRequest( $request )
+					->setRequest( collect( $request->all() ) )
 					->setArgs(['action'=> 'edit', 'id' => $id ])
 					->setSuccessMessage( $this->successMessage )
 					->doTheJob();
