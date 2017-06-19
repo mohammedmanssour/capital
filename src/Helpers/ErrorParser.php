@@ -27,13 +27,8 @@ Class ErrorParserWrapper{
 
 		$html = '<p>'.trans('messages.fix_errors').'</p>';
 		$html .= '<ul>';
-		foreach($this->errors as $attrs_errors){
-			if(empty($attrs_errors)){
-				continue;
-			}
-			foreach($attrs_errors as $err){
-				$html .= '<li> '.$err.' </li>';
-			}
+		foreach($this->errors->all() as $err){
+			$html .= '<li> '.$err.' </li>';
 		}
 		$html .= '</ul>';
 		return $html;
@@ -45,13 +40,8 @@ Class ErrorParserWrapper{
 		}
 
 		$errors = [];
-		foreach($this->errors as $attrs_errors){
-			if(empty($attrs_errors)){
-				continue;
-			}
-			foreach($attrs_errors as $err){
-				$errors[] = $err;
-			}
+		foreach($this->errors->all() as $err){
+			$errors[] = $err;
 		}
 
 		return $errors;

@@ -78,7 +78,7 @@ trait AppBaseModelTrait{
     public function validate(){
 		$this->validator = Validator::make($this->attrs,$this->rules());
 		if ($this->validator->fails()) {
-			$this->errors = $this->validator->messages()->toArray();
+			$this->errors = $this->validator->messages();
 			return false;
 		}
 		return true;
@@ -92,14 +92,14 @@ trait AppBaseModelTrait{
      * getting Errors as Html 
      */
     public function getErrors(){
-		ErrorParser::parse( $this->errors )->toHtmlUlList();
+		return ErrorParser::parse( $this->errors )->toHtmlUlList();
 	}
 
     /**
      * getteing Errors as Array
      */
     public function getErrorsAsArray(){
-		ErrorParser::parse( $this->errors )->toSimpleArray();
+		return ErrorParser::parse( $this->errors )->toSimpleArray();
 	}
 
     /**
