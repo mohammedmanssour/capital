@@ -11,7 +11,7 @@ Class BaseRepository implements RepositoryContract{
 	 * if you want to use more complicated query other than customizations added to simple query enable this variable
 	 * @var boolean
 	 */
-	public $customizaQuery = false;
+	public $customizeQuery = false;
 
 	/**
 	 * Because Eleqount has alot of methods that we can't override here
@@ -22,19 +22,22 @@ Class BaseRepository implements RepositoryContract{
 	 */
 	public function __call( $method, $args ){
 
-		/**
-		 * if customize Query isn't enable then add simpleQuery
-		 */
-		if( !$this->customizaQuery ){
-			$this->simpleQuery();
-		}
 
 		// methods that are used to fetch the results of the query not for building
 		$fetchMethods = collect([
-			'first', 'get', 'paginate', 'count', 'min', 'max', 'find', 'findOrFail'
+			'first', 'get', 'paginate', 'count', 'min', 'max', 'find', 'findOrFail','toSql'
 		]);
 
+
 		if( $fetchMethods->contains( $method ) ){
+			
+			/**
+			 * if customize Query isn't enable then add simpleQuery
+			 */
+			if( !$this->customizeQuery){
+				$this->simpleQuery();
+			}
+
 			return $this->query->{$method}(...$args);
 		}
 
@@ -43,7 +46,7 @@ Class BaseRepository implements RepositoryContract{
 	}
 
 	public function enableCustomization(){
-		$this->customizaQuery = true;
+		$this->customizeQuery = true;
 		return $this;
 	}
 
