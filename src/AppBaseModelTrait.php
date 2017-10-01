@@ -22,7 +22,7 @@ trait AppBaseModelTrait{
     /**
      * Wheter to validate input accoding to rules or not
      * default to true
-     * @var boolean 
+     * @var boolean
      */
     public $validate = true;
 
@@ -60,13 +60,13 @@ trait AppBaseModelTrait{
 		if($this->validate && !$this->validate()){
 			return false;
 		}
-		
+
 		$this->beforeSave();
-		
+
 		$success = parent::save( $options );
-		
+
 		/**
-		 * if you want to run function before save user 
+		 * if you want to run function before save user
 		 */
 
 		return $success;
@@ -89,7 +89,7 @@ trait AppBaseModelTrait{
 	}
 
     /**
-     * getting Errors as Html 
+     * getting Errors as Html
      */
     public function getErrors(){
 		return ErrorParser::parse( $this->errors )->toHtmlUlList();
@@ -99,7 +99,7 @@ trait AppBaseModelTrait{
      * getteing Errors as Array
      */
     public function getErrorsAsArray(){
-		return ErrorParser::parse( $this->errors )->toSimpleArray();
+		return $this->errors->all();
 	}
 
     /**

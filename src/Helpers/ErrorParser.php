@@ -2,6 +2,8 @@
 
 namespace Helilabs\Capital\Helpers;
 
+use Illuminate\Translation\Translator;
+
 Class ErrorParser{
 	public static function __callStatic($method, $args){
 		return (new ErrorParserWrapper)->{$method}(...$args);
@@ -20,13 +22,12 @@ Class ErrorParserWrapper{
 		return $this;
 	}
 
-	public function toHtmlUlList(){
+	public function toHtmlUlList( $preTextNotice = '' ){
 		if( !$this->errors ){
 			return '';
 		}
 
-		$html = '<p>'.trans('messages.fix_errors').'</p>';
-		$html .= '<ul>';
+		$html = '<ul>';
 		foreach($this->errors->all() as $err){
 			$html .= '<li> '.$err.' </li>';
 		}
@@ -35,16 +36,7 @@ Class ErrorParserWrapper{
 	}
 
 	public function toSimpleArray(){
-		if( !$this->errors ){
-			return []; 
-		}
-
-		$errors = [];
-		foreach($this->errors->all() as $err){
-			$errors[] = $err;
-		}
-
-		return $errors;
+		return $this->errors->all();
 	}
 
 }
