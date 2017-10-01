@@ -1,72 +1,45 @@
-<?php 
+<?php
+
 namespace Helilabs\Capital\Repository;
 
-use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Database\Eloquent\Model;
 
 Class BaseRepository implements RepositoryContract{
 
 	public $query;
 
-	/**
-	 * if you want to use more complicated query other than customizations added to simple query enable this variable
-	 * @var boolean
-	 */
-	public $customizeQuery = false;
+	public function __construct( Model $model ){
+		$this->query = $model;
+	}
 
 	/**
-	 * Because Eleqount has alot of methods that we can't override here
-	 * we made this magic function to excute Eleqount methods on Repository with affecting on $query
-	 * @param  string $method the method that was called 
+	 *
+	 * @param  string $method the method that was called
 	 * @param  string $args   arguments of the functions
-	 * @return Helilabs\Capital\BaseRepository    this
+	 * @return Helilabs\Capital\BaseRepository | Illuminate\Database\Eloquent\Collection   BaseRepository instance or Result of the query
 	 */
 	public function __call( $method, $args ){
 
 
 		// methods that are used to fetch the results of the query not for building
 		$fetchMethods = collect([
-			'first', 'get', 'paginate', 'count', 'min', 'max', 'find', 'findOrFail','toSql'
+			'first', 'get', 'paginate', 'count', 'min', 'max', 'find', 'findOrFail','toSql','pluck'
 		]);
 
 
 		if( $fetchMethods->contains( $method ) ){
-			
-			/**
-			 * if customize Query isn't enable then add simpleQuery
-			 */
-			if( !$this->customizeQuery){
-				$this->simpleQuery();
-			}
-
 			return $this->query->{$method}(...$args);
 		}
 
-		$this->query->{$method}(...$args);
-		return $this;
-	}
-
-	public function enableCustomization(){
-		$this->customizeQuery = true;
 		return $this;
 	}
 
 	/**
-	 * A constrains you add to the query every time you use it
-	 * @return $this
-	 */
-	public function simpleQuery(){
-		return $this;
-	}
-
-	/**
-	 * to recreate a new Object fron the current Controller
-	 * @return new self
+	 * to recreate a new Object from the current Repository
+	 * @return new static
 	 */
 	public function refresh(){
-		$class = get_called_class();
-		
-		$newInstance = new $class;
-		return $newInstance;
+		return new static;
 	}
 
 	/**
@@ -81,7 +54,8 @@ Class BaseRepository implements RepositoryContract{
 			return $this;
 		}
 
-		return $callback( $this );
+		$callback( $this );
+		return $this;
 	}
 
 	/**
@@ -90,17 +64,6 @@ Class BaseRepository implements RepositoryContract{
 	 */
 	public function getAllModels( $value = 'name', $key = 'id' ){
 		return $this->query->pluck( $value, $key );
-	}
-
-
-	/**
-	 * attach user condition to the query
-	 * @param  AuthenticatableContract $user      user to compare with
-	 * @param  string                  $fieldName user_id column name in the database
-	 */
-	public function forUser( AuthenticatableContract $user, $fieldName = 'user_id' ){
-		$this->query->where($fieldName, $user->id);
-		return $this;
 	}
 
 }

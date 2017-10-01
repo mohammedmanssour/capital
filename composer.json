@@ -14,8 +14,18 @@
             "Helilabs\\Capital\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
     "require": {
-        "illuminate/support": "~5"
+        "illuminate/support": "~5",
+        "illuminate/database": "~5"
+    },
+    "require-dev": {
+        "mockery/mockery": "dev-master",
+        "phpunit/phpunit": "4.8.*"
     }
 
 }
