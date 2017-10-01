@@ -29,7 +29,7 @@ Class StdClassGenerator{
 
 		foreach( $sourceData as $key => $value ){
 			if( is_numeric($key) ){
-				$key .= 'attr-'.$key;
+				$key = 'attr-'.$key;
 			}
 
 			if( is_array( $value ) ){
