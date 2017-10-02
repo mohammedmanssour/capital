@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Helilabs\Capital\CURD\CurdFactoryContract;
 use Helilabs\Capital\Repository\RepositoryContract;
 
-Class CurdController extends BaseController{
+Abstract Class CurdController extends BaseController{
 
 	use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
@@ -31,20 +31,44 @@ Class CurdController extends BaseController{
 	public $sourceRepository;
 
 	/**
-	 * Success Message to Show when stored, updated successfully
-	 * @var string
+	 * Handler to handle things after store is done successfully
+	 * @var Helilabs\Capital\Helpers\CallbackHandler
 	 */
-	public $successMessage;
+	public $onStoreSuccessHandler;
 
+	/**
+	 * Handler to handle things after store failure
+	 * @var Helilabs\Capital\Helpers\CallbackHandler
+	 */
+	public $onStoreFailureHandler;
 
-	public $afterDeleteCallbacks;
+	/**
+	 * Handler to handle things after update is done successfully
+	 * @var Helilabs\Capital\Helpers\CallbackHandler
+	 */
+	public $onUpdateSuccessHandler;
 
-	public function addAfterDeleteCallBack( $callback ){
-		$this->afterDeleteCallbacks->push( $callback );
-	}
+	/**
+	 * Handler to handle things after update failure
+	 * @var Helilabs\Capital\Helpers\CallbackHandler
+	 */
+	public $onUpdateFailureHandler;
+
+	/**
+	 * Handler to handle things after deletion is done
+	 * @var Helilabs\Capital\Helpers\CallbackHandler
+	 */
+	public $deleteHandler;
+
 
 	public function __construct(){
-		$this->afterDeleteCallbacks = collect([]);
+
+		$this->initStoreHandlers();
+
+		$this->initUpdateHandlers();
+
+		$this->initDeleteHandler();
+
 	}
 
 	/**
@@ -64,6 +88,20 @@ Class CurdController extends BaseController{
 		return $modelFactory;
 	}
 
+	public function initStoreHandlers(){
+		$this->onStoreSuccessHandler = new CallbackHandler;
+		$this->onStoreFailureHandler = new CallbackHandler;
+	}
+
+	public function initUpdateHandlers(){
+		$this->onUpdateSuccessHandler = new CallbackHandler;
+		$this->onUpdateFailureHandler = new CallbackHandler;
+	}
+
+	public function initDeleteHandler(){
+		$this->deleteHandler = new CallbackHandler;
+	}
+
 
 	/**
 	 * Show all models provided with pagination
@@ -72,7 +110,7 @@ Class CurdController extends BaseController{
 	public function index(){
 
 		return view($this->generateViewPath('index'), [
-			'models' => $this->handleSourceRepository( $this->sourceRepository )->get()
+			'models' => $this->handleSourceRepository( )->get()
 		]);
 	}
 
@@ -87,14 +125,12 @@ Class CurdController extends BaseController{
 	}
 
 	public function store( Request $request, CurdFactoryContract $modelFactory ){
-		$redirect = $this->handleModelFactory( $modelFactory )
-					->setRequest( collect( $request->all() ) )
-					->setArgs(['action'=> 'new' ])
-					->setSuccessMessage( $this->successMessage )
+		return $this->handleModelFactory( $modelFactory )
+					->setArgs( collect( $request->all() ) )
+					->setAdditionalArgs(['action'=> 'new' ])
+					->setSuccessHandler( $this->onStoreSuccessHandler )
+					->setFailureHandler( $this->onStoreFailureHandler )
 					->doTheJob();
-
-		//TODO: add after store callbacks
-		return $redirect;
 	}
 
 	public function edit( Request $request, $id ){
@@ -105,19 +141,17 @@ Class CurdController extends BaseController{
 	}
 
 	public function update( Request $request, CurdFactoryContract $modelFactory, $id ){
-		$redirect = $this->handleModelFactory( $modelFactory )
-					->setRequest( collect( $request->all() ) )
-					->setArgs(['action'=> 'edit', 'id' => $id ])
-					->setSuccessMessage( $this->successMessage )
+		return $this->handleModelFactory( $modelFactory )
+					->setArgs( collect( $request->all() ) )
+					->setAdditionalArgs(['action'=> 'edit', 'id' => $id ])
+					->setSuccessHandler( $this->onUpdateSuccessHandler )
+					->setFailureHandler( $this->onUpdateFailureHandler )
 					->doTheJob();
-
-		//TODO: add after update callbacks
-		return $redirect;
 	}
 
 
 	public function show( $id ){
-		$model = $this->sourceRepository->where(['id'=>$id])->first();
+		$model = $this->findModel( $id );
 		return view( $this->generateViewPath('show'),[
 			'model' => $model
 		]);
@@ -128,38 +162,19 @@ Class CurdController extends BaseController{
 		$model = $this->findModel( $id );
 		$model->delete();
 
-		$model->delete();
+		return $this->deleteHandler->handle();
+	}
 
-		// exutece after delete callbacks
-		if( $this->afterDeleteCallbacks->isEmpty() ){
-			return redirect()->back();
-		}
-		foreach( $this->afterDeleteCallbacks as $callback ){
-			$callback();
-		}
-
-		return redirect()->back();
+	public function generateViewPath( $targetViewFileName ){
+		return $this->viewPath.'.'.$targetViewFileName;
 	}
 
 	/**
 	 * Common function to Find wanted Model
 	 * you can override this function to provide policies
 	 * @param  int $id the target id
-	 * @return ModelInstance     target
+	 * @return Illuminate\Database\Eloquent\Model
 	 */
-	public function findModel( $id ){
-		$model = $this->handleSourceRepository()->where(['id' => $id])->first();
-
-		if( !$model ){
-			abort(404);
-		}
-
-		return $model;
-		
-	}
-
-	public function generateViewPath( $targetViewFileName ){
-		return $this->viewPath.'.'.$targetViewFileName;
-	}
+	public abstract function findModel( $id );
 
 }

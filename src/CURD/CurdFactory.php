@@ -1,5 +1,5 @@
 <?php
- 
+
 namespace Helilabs\Capital\CURD;
 
 use Illuminate\Support\Collection;
@@ -9,83 +9,57 @@ use Helilabs\Capital\Repository\RepositoryContract;
 abstract Class CurdFactory implements CurdFactoryContract{
 
 	/**
-	 * Interface User used to make the request
+	 * web or api
 	 * @var string
 	 */
 	public $interface = 'web';
-	/**
-	 * Request User Send through interface
-	 * @var Request
-	 */
-	public $request;
 
 	/**
-	 * Model to pase to Creater Find it or create using the "findOrCreateModel" or you can just pass it through setModel
+	 * Model that will be saved ( insert or update )
 	 * @var Helilabs\Capital\AppBaseModel;
 	 */
-	public $model;
+	protected $model;
 
 	/**
-	 * Additional Args that controls the request
-	 * default are 
+	 * Main Args used by model to create
+	 * @var Illuminate\Support\Collection
+	 */
+	protected $args;
+
+	/**
+	 * Additional Args
+	 * default are
 	 * [
 	 *		'action' => 'new', // determins whether to create a new Model or to find one other options are edit
 	 *		'id' => null, // the id of the model you wanna find if action was set to edit
 	 *	]
-	 *	
-	 * @var array
+	 *
+	 * @var Illuminate\Support\Collection
 	 */
-	public $args;
+	protected $additionalArgs;
 
 	/**
-	 * Success Message
-	 * @var string
+	 * handler to handle things after success
+	 * @var CallbackHandler
 	 */
-	public $message = 'success';
+	protected $successHandler;
 
 	/**
-	 * Source Repository
-	 * @var Helilabs\Capital\Repository\RepositoryContract;
+	 * handler to handle things after failure
+	 * @var CallbackHandler
 	 */
-	public $sourceRepository;
+	protected $failureHandler;
 
-	/**
-	 * MainCreater/Editor of the model
-	 * @var Helilabs\Capital\CURD\CurdCreatorContract
-	 */
-	public $curdCreator;
-
-	/**
-	 * Bind one of the repositories to interface
-	 * @param Helilabs\Capital\Repository\RepositoryContract $sourceRepository SourceRepository to fetch model through
-	 * @param Helilabs\Capital\CURD\CurdCreatorContract $curdCreator MainCreater/Editor of the model
-	 */
-	public function __construct( RepositoryContract $sourceRepository, CurdCreatorContract $curdCreator){
-		$this->sourceRepository = $sourceRepository;
-		$this->curdCreator = $curdCreator;
+	public function __construct(){
+		$this->additionalArgs = collect([
+				'action' => 'new',
+				'id' => null
+			]);
 	}
+
 
 	public function setInterface($interface){
 		$this->interface = $interface;
-		return $this;
-	}
-
-	public function setSuccessMessage( $message ){
-		$this->message = $message;
-		return $this;
-	}
-
-	/**
-	 * set Request Data to be parsed
-	 * @param Illuminate\Support\Collection $request [description]
-	 */
-	public function setRequest( Collection $request ){
-		$this->request = $request;
-		return $this;
-	}
-
-	public function setArgs( $args = array() ){
-		$this->args = $args;
 		return $this;
 	}
 
@@ -98,105 +72,71 @@ abstract Class CurdFactory implements CurdFactoryContract{
 		return $this;
 	}
 
+	public function getModel(){
+		return $model;
+	}
+
 	/**
-	 * Creates the Model or 
-	 * @return $this Helilabs\Capital\CurdFactory
+	 * Main Args used with the factory
+	 * @param Collection $args [description]
 	 */
-	public function findOrCreateModel(){
-		if( $this->args['action'] == 'new' ){
-			$this->createModel();
-			return $this;
-		}
-
-		$this->findModel();
+	public function setArgs( Collection $args ){
+		$this->args = $args;
 		return $this;
 	}
 
-	public function findModel(){
-		if( !isset( $this->args['id'] )){
-			$message = 'id not provided';
-
-			if( $this->interface == 'api' ){
-				throw new JsonException( ['error' => $message ] );
-			}
-
-			throw new \Exception( $message );
-		}
-
-		$this->model = $this->sourceRepository->where('id' , $this->args['id'] )->first();
-		
-		if( !$this->model ){
-
-			$message = 'Model Not Found' ;
-
-			if( $this->interface == 'api' ){
-				throw new JsonException( ['error' => $message ] );
-			}
-
-			throw new \Exeption( $message );
-		}
-
+	/**
+	 * add Arg to the main arg
+	 * @param string $key
+	 * @param mixed $value
+	 */
+	public function addArg( $key, $value ){
+		$this->arg->put($key, $value);
 		return $this;
 	}
+
+	/**
+	 * non-primary additional args used in the factory
+	 * @param array $additionalArgs
+	 */
+	public function setAdditionalArgs( array $additionalArgs ){
+		$this->additionalArgs->merge( $additionalArgs );
+		return $this;
+	}
+
+	/**
+	* add additional arg
+	*/
+	public function addAdditionalArg( $key, $value ){
+		$this->additionalArgs->put( $key, $value );
+	}
+
+
+
+	public function setSuccessHandler( CallbackHandler $successHandler ){
+		$this->successHandler = $successHandler;
+		return $this;
+	}
+
+	public function setFailureHandler( CallbackHandler $failureHandler ){
+		$this->failureHandler = $failureHandler;
+		return $this;
+	}
+
 
 	public function doTheJob(){
+		$handler = $this->successHandler;
+
 		try{
-
-			$this->findOrCreateModel();
-			$this->curdCreator
-			 	->setRequest( $this->request )
-			 	->setArgs( $this->args )
-			 	->setInterface( $this->interface )
-			 	->setModel( $this->model )
-			 	->doAction();
-
-			if($this->interface == 'api'){
-				return response()->json([
-					'code' => 1,
-					'message' => $this->message
-				]);
-			}
-
-			$this->afterSuccessCallback();
-			return $this->redirectOnSuccess();
-
-		}catch( JsonException $e ){
-			//Json Exception are thrown in api interface
-			return response()->json([
-				'code' => 0,
-				'message' => $e->getDecodedMessage()
-			]);
-			
-		}catch( \Exception $e ){
-			$this->afterFailureCallback( $e->getMessage() );
-			return redirect()->back()->withInput()->withErrors( $this->curdCreator->getModel()->getValidator() );
+			$this->theJob();
+		}catch(\Exception $e){
+			$handler = $this->failureHandler;
 		}
+
+		return $handler->passArguments([$this])->handle();
+
 	}
 
-	/**
-	 * Create New Model from the Model
-	 * @return Helilabs\Capital\CURD\CurdFactory $this
-	 */
-	public abstract function createModel();
-
-	/**
-	 * Where to redirect after successfull creation
-	 * @return string url to redirect to after success
-	 */
-	public abstract function redirectOnSuccess();
-
-	/**
-	 * Function to be excuted after operation success on web interface
-	 * @return Helilabs\Capital\CURD\CurdFactory $this
-	 */
-	public abstract function afterSuccessCallback();
-
-
-	/**
-	 * Function to be excuted after operation failure on web interface
-	 * @return Helilabs\Capital\CURD\CurdFactory $this
-	 */
-	public abstract function afterFailureCallback( $errorMessage );
-
+	public abstract function theJob();
 
 }
