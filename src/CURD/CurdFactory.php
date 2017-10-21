@@ -2,9 +2,7 @@
 
 namespace Helilabs\Capital\CURD;
 
-use Illuminate\Support\Collection;
-use Helilabs\Capital\Exceptions\JsonException;
-use Helilabs\Capital\Repository\RepositoryContract;
+use Helilabs\Capital\Helpers\CallbackHandler;
 
 abstract Class CurdFactory implements CurdFactoryContract{
 
@@ -24,7 +22,7 @@ abstract Class CurdFactory implements CurdFactoryContract{
 	 * Main Args used by model to create
 	 * @var Illuminate\Support\Collection
 	 */
-	protected $args;
+	public $args;
 
 	/**
 	 * Additional Args
@@ -36,7 +34,7 @@ abstract Class CurdFactory implements CurdFactoryContract{
 	 *
 	 * @var Illuminate\Support\Collection
 	 */
-	protected $additionalArgs;
+	public $additionalArgs;
 
 	/**
 	 * handler to handle things after success
@@ -55,6 +53,8 @@ abstract Class CurdFactory implements CurdFactoryContract{
 				'action' => 'new',
 				'id' => null
 			]);
+
+		$this->args = collect([]);
 	}
 
 
@@ -73,25 +73,26 @@ abstract Class CurdFactory implements CurdFactoryContract{
 	}
 
 	public function getModel(){
-		return $model;
+		return $this->model;
 	}
 
 	/**
 	 * Main Args used with the factory
-	 * @param Collection $args [description]
+	 * @param array $args
 	 */
-	public function setArgs( Collection $args ){
-		$this->args = $args;
+	public function setArgs( array $args ){
+		$this->args = $this->args->union( $args );
 		return $this;
 	}
 
 	/**
 	 * add Arg to the main arg
+	 * has higher priority to keep args more than setArgs
 	 * @param string $key
 	 * @param mixed $value
 	 */
 	public function addArg( $key, $value ){
-		$this->arg->put($key, $value);
+		$this->args->put($key, $value);
 		return $this;
 	}
 
@@ -100,7 +101,7 @@ abstract Class CurdFactory implements CurdFactoryContract{
 	 * @param array $additionalArgs
 	 */
 	public function setAdditionalArgs( array $additionalArgs ){
-		$this->additionalArgs->merge( $additionalArgs );
+		$this->additionalArgs = $this->additionalArgs->merge( $additionalArgs );
 		return $this;
 	}
 
@@ -109,31 +110,55 @@ abstract Class CurdFactory implements CurdFactoryContract{
 	*/
 	public function addAdditionalArg( $key, $value ){
 		$this->additionalArgs->put( $key, $value );
+		return $this;
 	}
 
 
-
+	/**
+	 * set success handler
+	 * @param Helilabs\Capital\Helpers\CallbackHandler $successHandler
+	 */
 	public function setSuccessHandler( CallbackHandler $successHandler ){
 		$this->successHandler = $successHandler;
 		return $this;
 	}
 
+	/**
+	 * get success handler
+	 * @return Helilabs\Capital\Helpers\CallbackHandler
+	 */
+	public function getSuccessHandler(){
+		return $this->successHandler;
+	}
+
+	/**
+	 * set failure handler
+	 * @param Helilabs\Capital\Helpers\CallbackHandler $failureHandler
+	 */
 	public function setFailureHandler( CallbackHandler $failureHandler ){
 		$this->failureHandler = $failureHandler;
 		return $this;
 	}
 
+	/**
+	 * get failure handler
+	 * @return Helilabs\Capital\Helpers\CallbackHandler
+	 */
+	public function getFailureHandler(){
+		return $this->failureHandler;
+	}
+
 
 	public function doTheJob(){
-		$handler = $this->successHandler;
+		$handler = $this->successHandler->passArguments([$this]);
 
 		try{
 			$this->theJob();
 		}catch(\Exception $e){
-			$handler = $this->failureHandler;
+			$handler = $this->failureHandler->passArguments([$this, $e]);
 		}
 
-		return $handler->passArguments([$this])->handle();
+		return $handler->handle();
 
 	}
 

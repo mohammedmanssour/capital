@@ -2,15 +2,14 @@
 
 namespace Helilabs\Capital\Controllers;
 
+use Illuminate\Http\Request;
+use Helilabs\Capital\Helpers\CallbackHandler;
 use Illuminate\Foundation\Bus\DispatchesJobs;
+use Helilabs\Capital\CURD\CurdFactoryContract;
+use Helilabs\Capital\Repository\RepositoryContract;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-
-use Illuminate\Http\Request;
-
-use Helilabs\Capital\CURD\CurdFactoryContract;
-use Helilabs\Capital\Repository\RepositoryContract;
 
 Abstract Class CurdController extends BaseController{
 
@@ -31,79 +30,6 @@ Abstract Class CurdController extends BaseController{
 	public $sourceRepository;
 
 	/**
-	 * Handler to handle things after store is done successfully
-	 * @var Helilabs\Capital\Helpers\CallbackHandler
-	 */
-	public $onStoreSuccessHandler;
-
-	/**
-	 * Handler to handle things after store failure
-	 * @var Helilabs\Capital\Helpers\CallbackHandler
-	 */
-	public $onStoreFailureHandler;
-
-	/**
-	 * Handler to handle things after update is done successfully
-	 * @var Helilabs\Capital\Helpers\CallbackHandler
-	 */
-	public $onUpdateSuccessHandler;
-
-	/**
-	 * Handler to handle things after update failure
-	 * @var Helilabs\Capital\Helpers\CallbackHandler
-	 */
-	public $onUpdateFailureHandler;
-
-	/**
-	 * Handler to handle things after deletion is done
-	 * @var Helilabs\Capital\Helpers\CallbackHandler
-	 */
-	public $deleteHandler;
-
-
-	public function __construct(){
-
-		$this->initStoreHandlers();
-
-		$this->initUpdateHandlers();
-
-		$this->initDeleteHandler();
-
-	}
-
-	/**
-	 * This function was added to provide more flexibility when building the model facoty
-	 * @param  Helilabs\Capital\Repository\RepositoryContract $sourceRepository used to prepare getting the data
-	 * @return Helilabs\Capital\Repository\RepositoryContract $sourceRepository used to prepare getting the
-	 */
-	public function handleSourceRepository(){
-		return $this->sourceRepository;
-	}
-
-	/**
-	 * This function was added to provide more flexibility when building the model facoty
-	 * @return Helilabs\Capital\CURD\CurdFactoryContract Model Facoty used on add & edit
-	 */
-	public function handleModelFactory( CurdFactoryContract $modelFactory ){
-		return $modelFactory;
-	}
-
-	public function initStoreHandlers(){
-		$this->onStoreSuccessHandler = new CallbackHandler;
-		$this->onStoreFailureHandler = new CallbackHandler;
-	}
-
-	public function initUpdateHandlers(){
-		$this->onUpdateSuccessHandler = new CallbackHandler;
-		$this->onUpdateFailureHandler = new CallbackHandler;
-	}
-
-	public function initDeleteHandler(){
-		$this->deleteHandler = new CallbackHandler;
-	}
-
-
-	/**
 	 * Show all models provided with pagination
 	 * @return View
 	 */
@@ -120,16 +46,16 @@ Abstract Class CurdController extends BaseController{
 	 * @return View
 	 */
 	public function create(){
-
 		return view( $this->generateViewPath( 'create' ) );
 	}
 
-	public function store( Request $request, CurdFactoryContract $modelFactory ){
+	public function store( Request $request, CurdFactoryContract $modelFactory, CallbackHandler $onSuccessHandler, CallbackHandler $onFailureHandler ){
 		return $this->handleModelFactory( $modelFactory )
-					->setArgs( collect( $request->all() ) )
+					->setModel( $this->createModel() )
+					->setArgs( $request->all() )
 					->setAdditionalArgs(['action'=> 'new' ])
-					->setSuccessHandler( $this->onStoreSuccessHandler )
-					->setFailureHandler( $this->onStoreFailureHandler )
+					->setSuccessHandler( $this->handleStoreOnSuccessHandler( $onSuccessHandler ) )
+					->setFailureHandler( $this->handleStoreOnFailureHandler( $onFailureHandler ) )
 					->doTheJob();
 	}
 
@@ -140,12 +66,15 @@ Abstract Class CurdController extends BaseController{
 		]);
 	}
 
-	public function update( Request $request, CurdFactoryContract $modelFactory, $id ){
+	public function update( Request $request, CurdFactoryContract $modelFactory, CallbackHandler $onSuccessHandler, CallbackHandler $onFailureHandler ,$id ){
+		$model = $this->findModel( $id );
+
 		return $this->handleModelFactory( $modelFactory )
-					->setArgs( collect( $request->all() ) )
+					->setModel( $model )
+					->setArgs( $request->all() )
 					->setAdditionalArgs(['action'=> 'edit', 'id' => $id ])
-					->setSuccessHandler( $this->onUpdateSuccessHandler )
-					->setFailureHandler( $this->onUpdateFailureHandler )
+					->setSuccessHandler( $this->handleUpdateOnSuccessHandler( $onSuccessHandler ) )
+					->setFailureHandler( $this->handleUpdateOnFailureHandler( $onFailureHandler ) )
 					->doTheJob();
 	}
 
@@ -158,11 +87,11 @@ Abstract Class CurdController extends BaseController{
 	}
 
 
-	public function destroy( $id ){
+	public function destroy(CallbackHandler $handler ,$id ){
 		$model = $this->findModel( $id );
 		$model->delete();
 
-		return $this->deleteHandler->handle();
+		return $this->handleDeleteHandler( $handler );
 	}
 
 	public function generateViewPath( $targetViewFileName ){
@@ -170,11 +99,76 @@ Abstract Class CurdController extends BaseController{
 	}
 
 	/**
-	 * Common function to Find wanted Model
-	 * you can override this function to provide policies
-	 * @param  int $id the target id
+	 * manipulate the SourceRepository before using it
+	 * @param  Helilabs\Capital\Repository\RepositoryContract $sourceRepository
+	 * @return Helilabs\Capital\Repository\RepositoryContract $sourceRepository repository after manipulation.
+	 */
+	public function handleSourceRepository(){
+		return $this->sourceRepository;
+	}
+
+	/**
+	 * manipulate modelFactory before using it
+	 * for example set interface or add additional args
+	 * @return Helilabs\Capital\CURD\CurdFactoryContract Model Facoty used on add & edit
+	 */
+	public function handleModelFactory( CurdFactoryContract $modelFactory ){
+		return $modelFactory;
+	}
+
+	/**
+	 * manipulate the store onSucessHandler before using it
+	 * for example registering callbacks to be excuted after store success or register done callback
+	 * @param  CallbackHandler $handler
+	 * @return CallbackHandler $handler
+	 */
+	public abstract function handleStoreOnSuccessHandler( CallbackHandler $handler );
+
+	/**
+	 * manipulate the store onFailure before using it
+	 * for example registering callbacks to be excuted after store failre or register done callback
+	 * @param  CallbackHandler $handler
+	 * @return CallbackHandler $handler
+	 */
+	public abstract function handleStoreOnFailureHandler( CallbackHandler $handler );
+
+	/**
+	 * manipulate the update onSucessHandler before using it
+	 * for example registering callbacks to be excuted after update success or register done callback
+	 * @param  CallbackHandler $handler
+	 * @return CallbackHandler $handler
+	 */
+	public abstract function handleUpdateOnSuccessHandler( CallbackHandler $handler );
+
+	/**
+	 * manipulate the update onFailure before using it
+	 * for example registering callbacks to be excuted after update failre or register done callback
+	 * @param  CallbackHandler $handler
+	 * @return CallbackHandler $handler
+	 */
+	public abstract function handleUpdateOnFailureHandler( CallbackHandler $handler );
+
+	/**
+	 * manipulate the delete handler before using it
+	 * for example registering callbacks to be excuted after delete is done or register done callback
+	 * @param  CallbackHandler $handler
+	 * @return CallbackHandler $handler
+	 */
+	public abstract function handleDeleteHandler( CallbackHandler $handler );
+
+	/**
+	 * Common function to Find Model By id
+	 * this function used by edit, update and delete methods.
+	 * @param  int $id Model id
 	 * @return Illuminate\Database\Eloquent\Model
 	 */
 	public abstract function findModel( $id );
+
+	/**
+	 * create new model of any type you want
+	 * this function used by Store method.
+	 * @return Illuminate\Database\Eloquent\Model
+	 */
+	public abstract function createModel();
 
 }
