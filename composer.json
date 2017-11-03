@@ -20,8 +20,10 @@
         }
     },
     "require": {
-        "illuminate/support": "~5",
-        "illuminate/database": "~5"
+        "illuminate/support": "*",
+        "illuminate/database": "*",
+        "illuminate/http": "*",
+        "illuminate/routing": "*"
     },
     "require-dev": {
         "mockery/mockery": "dev-master",

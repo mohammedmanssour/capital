@@ -4,16 +4,11 @@ namespace Helilabs\Capital\Controllers;
 
 use Illuminate\Http\Request;
 use Helilabs\Capital\Helpers\CallbackHandler;
-use Illuminate\Foundation\Bus\DispatchesJobs;
 use Helilabs\Capital\CURD\CurdFactoryContract;
 use Helilabs\Capital\Repository\RepositoryContract;
 use Illuminate\Routing\Controller as BaseController;
-use Illuminate\Foundation\Validation\ValidatesRequests;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 Abstract Class CurdController extends BaseController{
-
-	use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
 	/**
 	 * View Path
@@ -59,43 +54,43 @@ Abstract Class CurdController extends BaseController{
 					->doTheJob();
 	}
 
-	public function edit( Request $request, $id ){
-		$model = $this->findModel( $id );
+	public function edit( Request $request ){
+		$model = $this->findModel( $request );
 		return view( $this->generateViewPath('edit'),[
 			'model' => $model
 		]);
 	}
 
-	public function update( Request $request, CurdFactoryContract $modelFactory, CallbackHandler $onSuccessHandler, CallbackHandler $onFailureHandler ,$id ){
-		$model = $this->findModel( $id );
+	public function update( Request $request, CurdFactoryContract $modelFactory, CallbackHandler $onSuccessHandler, CallbackHandler $onFailureHandler ){
+		$model = $this->findModel( $request );
 
 		return $this->handleModelFactory( $modelFactory )
 					->setModel( $model )
 					->setArgs( $request->all() )
-					->setAdditionalArgs(['action'=> 'edit', 'id' => $id ])
+					->setAdditionalArgs(['action'=> 'edit' ])
 					->setSuccessHandler( $this->handleUpdateOnSuccessHandler( $onSuccessHandler ) )
 					->setFailureHandler( $this->handleUpdateOnFailureHandler( $onFailureHandler ) )
 					->doTheJob();
 	}
 
 
-	public function show( $id ){
-		$model = $this->findModel( $id );
+	public function show( Request $request ){
+		$model = $this->findModel( $request );
 		return view( $this->generateViewPath('show'),[
 			'model' => $model
 		]);
 	}
 
 
-	public function destroy(CallbackHandler $handler ,$id ){
-		$model = $this->findModel( $id );
+	public function destroy(Request $request, CallbackHandler $handler ){
+		$model = $this->findModel( $request );
 		$model->delete();
 
 		return $this->handleDeleteHandler( $handler );
 	}
 
 	public function generateViewPath( $targetViewFileName ){
-		return $this->viewPath.'.'.$targetViewFileName;
+		return $this->viewPath.$targetViewFileName;
 	}
 
 	/**
@@ -159,10 +154,10 @@ Abstract Class CurdController extends BaseController{
 	/**
 	 * Common function to Find Model By id
 	 * this function used by edit, update and delete methods.
-	 * @param  int $id Model id
+	 * @param  Request $request object that has all request info
 	 * @return Illuminate\Database\Eloquent\Model
 	 */
-	public abstract function findModel( $id );
+	public abstract function findModel( $request );
 
 	/**
 	 * create new model of any type you want
