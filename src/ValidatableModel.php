@@ -1,11 +1,11 @@
-<?php 
+<?php
 
 namespace Helilabs\Capital;
 
 use Illuminate\Database\Eloquent\Model;
 
-class AppBaseModel extends Model{
+class ValidatableModel extends Model{
 
-    use AppBaseModelTrait;
+    use Validatable;
 
 }

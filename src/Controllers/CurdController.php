@@ -4,11 +4,16 @@ namespace Helilabs\Capital\Controllers;
 
 use Illuminate\Http\Request;
 use Helilabs\Capital\Helpers\CallbackHandler;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 use Helilabs\Capital\CURD\CurdFactoryContract;
 use Helilabs\Capital\Repository\RepositoryContract;
 use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 Abstract Class CurdController extends BaseController{
+
+	use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
 	/**
 	 * View Path

@@ -20,10 +20,7 @@
         }
     },
     "require": {
-        "illuminate/support": "*",
-        "illuminate/database": "*",
-        "illuminate/http": "*",
-        "illuminate/routing": "*"
+        "laravel/framework" : "~5"
     },
     "require-dev": {
         "mockery/mockery": "dev-master",
