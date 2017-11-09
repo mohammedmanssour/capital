@@ -1,10 +1,10 @@
 <?php
 
-namespace Helilabs\Capital\CURD;
+namespace Helilabs\Capital\Factory;
 
 use Helilabs\Capital\Helpers\CallbackHandler;
 
-abstract Class CurdFactory implements CurdFactoryContract{
+abstract Class ModelFactory implements ModelFactoryContract{
 
 	/**
 	 * web or api

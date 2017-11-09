@@ -5,11 +5,11 @@ namespace Tests;
 use \Mockery;
 use \Exception;
 use PHPUnit\Framework\TestCase;
-use Helilabs\Capital\CURD\CurdFactory;
 use Illuminate\Database\Eloquent\Model;
+use Helilabs\Capital\Factory\ModelFactory;
 use Helilabs\Capital\Helpers\CallbackHandler;
 
-Class CurdFactoryTest extends TestCase{
+Class ModelFactoryTest extends TestCase{
 
 	public $factory;
 
@@ -19,7 +19,7 @@ Class CurdFactoryTest extends TestCase{
 	}
 
 	public function newFactory(){
-		$this->factory = $this->getMockForAbstractClass(CurdFactory::class);
+		$this->factory = $this->getMockForAbstractClass(ModelFactory::class);
 		$this->factory->expects($this->any())
 			 ->method('theJob')
 			 ->will($this->returnValue(TRUE));
@@ -152,13 +152,13 @@ Class CurdFactoryTest extends TestCase{
 	{
 	    $handler = (new CallbackHandler())
 	    			->registerDoneCallback(function($factory){
-	    				$this->assertInstanceOf(CurdFactory::class, $factory);
+	    				$this->assertInstanceOf(ModelFactory::class, $factory);
 	    				return 'success';
 	    			});
 
 	    $failureHandler = (new CallbackHandler())
 		    			->registerDoneCallback(function($factory, $exception){
-		    				$this->assertInstanceOf(CurdFactory::class, $factory);
+		    				$this->assertInstanceOf(ModelFactory::class, $factory);
 		    				$this->assertInstanceOf(Exception::class, $exception);
 		    				$this->assertEquals("exception throwed", $exception->getMessage());
 		    				return 'failure';

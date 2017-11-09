@@ -5,13 +5,13 @@ namespace Helilabs\Capital\Controllers;
 use Illuminate\Http\Request;
 use Helilabs\Capital\Helpers\CallbackHandler;
 use Illuminate\Foundation\Bus\DispatchesJobs;
-use Helilabs\Capital\CURD\CurdFactoryContract;
+use Helilabs\Capital\Factory\ModelFactoryContract;
 use Helilabs\Capital\Repository\RepositoryContract;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
-Abstract Class CurdController extends BaseController{
+Abstract Class CrudController extends BaseController{
 
 	use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
@@ -49,7 +49,7 @@ Abstract Class CurdController extends BaseController{
 		return view( $this->generateViewPath( 'create' ) );
 	}
 
-	public function store( Request $request, CurdFactoryContract $modelFactory, CallbackHandler $onSuccessHandler, CallbackHandler $onFailureHandler ){
+	public function store( Request $request, ModelFactoryContract $modelFactory, CallbackHandler $onSuccessHandler, CallbackHandler $onFailureHandler ){
 		return $this->handleModelFactory( $modelFactory )
 					->setModel( $this->createModel() )
 					->setArgs( $request->all() )
@@ -66,7 +66,7 @@ Abstract Class CurdController extends BaseController{
 		]);
 	}
 
-	public function update( Request $request, CurdFactoryContract $modelFactory, CallbackHandler $onSuccessHandler, CallbackHandler $onFailureHandler ){
+	public function update( Request $request, ModelFactoryContract $modelFactory, CallbackHandler $onSuccessHandler, CallbackHandler $onFailureHandler ){
 		$model = $this->findModel( $request );
 
 		return $this->handleModelFactory( $modelFactory )
@@ -110,9 +110,9 @@ Abstract Class CurdController extends BaseController{
 	/**
 	 * manipulate modelFactory before using it
 	 * for example set interface or add additional args
-	 * @return Helilabs\Capital\CURD\CurdFactoryContract Model Facoty used on add & edit
+	 * @return Helilabs\Capital\CURD\ModelFactoryContract Model Facoty used on add & edit
 	 */
-	public function handleModelFactory( CurdFactoryContract $modelFactory ){
+	public function handleModelFactory( ModelFactoryContract $modelFactory ){
 		return $modelFactory;
 	}
 

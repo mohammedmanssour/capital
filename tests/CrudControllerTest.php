@@ -6,11 +6,11 @@ use \Mockery;
 use \Exception;
 use Illuminate\Http\Request;
 use PHPUnit\Framework\TestCase;
-use Helilabs\Capital\CURD\CurdFactory;
+use Helilabs\Capital\Factory\ModelFactory;
 use Helilabs\Capital\Helpers\CallbackHandler;
-use Helilabs\Capital\Controllers\CurdController;
+use Helilabs\Capital\Controllers\CrudController;
 
-Class CurdControllerTest extends TestCase{
+Class CrudControllerTest extends TestCase{
 
 	public $controller;
 
@@ -22,7 +22,7 @@ Class CurdControllerTest extends TestCase{
 	}
 
 	public function newFactory(){
-		$this->factory = Mockery::mock( CurdFactory::class );
+		$this->factory = Mockery::mock( ModelFactory::class );
 		$this->factory->shouldReceive('doTheJob')->andReturn( 'returened' );
 		$this->factory->shouldReceive('setModel')->andReturn( $this->factory );
 		$this->factory->shouldReceive('setArgs')->andReturn( $this->factory );
@@ -35,7 +35,7 @@ Class CurdControllerTest extends TestCase{
 
 		$this->newFactory();
 
-		$this->controller = $this->getMockForAbstractClass(CurdController::class);
+		$this->controller = $this->getMockForAbstractClass(CrudController::class);
 		$this->controller->expects($this->any())
 			 ->method('findModel')->will($this->returnValue(TRUE));
 		$this->controller->expects($this->any())
