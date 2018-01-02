@@ -31,6 +31,10 @@ Class BaseRepository implements RepositoryContract{
 			return $this->query->{$method}(...$args);
 		}
 
+		if( $method == 'where' ){
+			$this->query->{$method}(...$args);
+		}
+
 		return $this;
 	}
 
