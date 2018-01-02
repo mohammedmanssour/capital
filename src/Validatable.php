@@ -53,8 +53,8 @@ trait Validatable{
         {
             $result = $model->validate();
 
-            if( $result && $this->beforeSaveCallback instanceof CallbackHandler ){
-            	$this->beforeSaveCallback->passArguments( $model )->handle();
+            if( $result && $model->beforeSaveCallbackHandler instanceof CallbackHandler ){
+            	$model->beforeSaveCallbackHandler->passArguments( [$model] )->handle();
             }
 
             return $result;
@@ -62,8 +62,8 @@ trait Validatable{
 
         static::saved(function($model){
 
-        	if( $result && $this->afterSaveCallback instanceof CallbackHandler ){
-            	$this->afterSaveCallback->passArguments( $model )->handle();
+        	if( $model->afterSaveCallbackHandler instanceof CallbackHandler ){
+            	$model->afterSaveCallbackHandler->passArguments( [$model] )->handle();
             }
 
         });
@@ -83,7 +83,7 @@ trait Validatable{
      * @return boolean validation passed or not
      */
     public function validate(){
-    	$v = $this->validator->make( $this->model->getAttributes(), $this->rules(), $this->messages() );
+    	$v = $this->validator->make( $this->getAttributes(), $this->rules(), $this->messages() );
 
     	if( $v->passes() ){
     		return true;
