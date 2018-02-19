@@ -5,6 +5,8 @@ namespace Tests;
 use \Mockery;
 use \Exception;
 use PHPUnit\Framework\TestCase;
+use Illuminate\Validation\Factory;
+use Illuminate\Validation\Validator;
 use Illuminate\Database\Eloquent\Model;
 use Helilabs\Capital\Factory\ModelFactory;
 use Helilabs\Capital\Helpers\CallbackHandler;
@@ -19,7 +21,14 @@ Class ModelFactoryTest extends TestCase{
 	}
 
 	public function newFactory(){
-		$this->factory = $this->getMockForAbstractClass(ModelFactory::class);
+		$validator = Mockery::mock(Validator::class);
+		$validator->shouldReceive('passes')->andReturn(true);
+		$validator->shouldReceive('errors')->andReturn([]);
+
+		$factory = Mockery::mock(Factory::class);
+		$factory->shouldReceive('make')->with(\Mockery::any(), \Mockery::any(), \Mockery::any())->andReturn($validator);
+
+		$this->factory = $this->getMockForAbstractClass(ModelFactory::class, [$factory]);
 		$this->factory->expects($this->any())
 			 ->method('theJob')
 			 ->will($this->returnValue(TRUE));

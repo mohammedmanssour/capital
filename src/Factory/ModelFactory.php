@@ -3,6 +3,7 @@
 namespace Helilabs\Capital\Factory;
 
 use Helilabs\Capital\Helpers\CallbackHandler;
+use Helilabs\Capital\Exceptions\JsonException;
 
 abstract Class ModelFactory implements ModelFactoryContract{
 
@@ -48,13 +49,34 @@ abstract Class ModelFactory implements ModelFactoryContract{
 	 */
 	protected $failureHandler;
 
-	public function __construct(){
+	/**
+	 * Validator Instance;
+	 * @var  Illuminate\Validation\Factory
+	 */
+	private $validator;
+
+	/**
+	 * whether to enable or disable validation
+	 * default to tue
+	 * @var boot
+	 */
+	private $validate = true;
+
+	/**
+	 * Validation Errors Container
+	 * @var \Illuminate\Support\MessageBag
+	 */
+	private $errors;
+
+	public function __construct($validator = null){
 		$this->additionalArgs = collect([
 				'action' => 'new',
 				'id' => null
 			]);
 
 		$this->args = collect([]);
+
+		$this->validator = $validator ?? app()->make('validator');
 	}
 
 
@@ -150,6 +172,12 @@ abstract Class ModelFactory implements ModelFactoryContract{
 
 
 	public function doTheJob(){
+
+		//validation is considered a part of the creating/updaing process
+		if( $this->validate && !$this->validate() ){
+			return $this->failureHandler->passArguments([$this, new JsonException($this->errors())])->handle();
+		}
+
 		$handler = $this->successHandler->passArguments([$this]);
 
 		try{
@@ -160,6 +188,69 @@ abstract Class ModelFactory implements ModelFactoryContract{
 
 		return $handler->handle();
 
+	}
+
+	/**
+	 * disable validation
+	 * @return $this
+	 */
+	public function disableValidation()
+	{
+		$this->validate = false;
+		return $this;
+	}
+
+	/**
+	 * Validate model attributes based on rules
+	 * @return boolean validation passed or not
+	 */
+	public function validate()
+	{
+		$v = $this->validator->make($this->args->all(), $this->rules(), $this->messages());
+
+		if ($v->passes()) {
+			return true;
+		}
+
+		$this->errors = $v->errors();
+
+		return false;
+	}
+
+	/**
+	 * get Validation Errors if any.
+	 *
+	 * @return \Illuminate\Support\MessageBag
+	 */
+	public function errors()
+	{
+		return $this->errors;
+	}
+
+	/**
+	 * if data is valid according to validation rules
+	 * @return boolean
+	 */
+	public function isValid()
+	{
+		return $this->errors->isEmpty();
+	}
+
+	/**
+	 * array of validation rules
+	 * @return array
+	 */
+	public function rules()
+	{
+		return [];
+	}
+	/**
+	 * array of validation messages
+	 * @return array
+	 */
+	public function messages()
+	{
+		return [];
 	}
 
 	public abstract function theJob();
