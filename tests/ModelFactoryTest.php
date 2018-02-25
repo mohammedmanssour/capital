@@ -3,17 +3,19 @@
 namespace Tests;
 
 use \Mockery;
-use \Exception;
+use \Exception as ErrorException;
 use PHPUnit\Framework\TestCase;
 use Illuminate\Validation\Factory;
 use Illuminate\Validation\Validator;
 use Illuminate\Database\Eloquent\Model;
 use Helilabs\Capital\Factory\ModelFactory;
 use Helilabs\Capital\Helpers\CallbackHandler;
+use Mockery\CountValidator\Exception;
 
 Class ModelFactoryTest extends TestCase{
 
 	public $factory;
+	public $model;
 
 	public function setUp(){
 		parent::setUp();
@@ -28,10 +30,20 @@ Class ModelFactoryTest extends TestCase{
 		$factory = Mockery::mock(Factory::class);
 		$factory->shouldReceive('make')->with(\Mockery::any(), \Mockery::any(), \Mockery::any())->andReturn($validator);
 
-		$this->factory = $this->getMockForAbstractClass(ModelFactory::class, [$factory]);
-		$this->factory->expects($this->any())
-			 ->method('theJob')
-			 ->will($this->returnValue(TRUE));
+		$this->factory = new ModelFactory($factory);
+	}
+
+	public function newModel($return = true)
+	{
+		$this->model = Mockery::mock(Model::class);
+		$this->model->shouldReceive('fill')->with(\Mockery::any())->andReturn(true);
+		if($return){
+			$this->model->shouldReceive('save')->andReturn(true);
+		}else{
+			$this->model->shouldReceive('save')->andThrow(new ErrorException('exception throwed'));
+		}
+		$this->model->shouldReceive('getAttribute')->andReturn([]);
+		$this->model->shouldReceive('delete')->andReturn(true);
 	}
 
 	/** @test */
@@ -129,11 +141,28 @@ Class ModelFactoryTest extends TestCase{
 
 	/** @test */
 	public function can_set_get_model(){
-		$model = Mockery::mock( Model::class );
-		$this->factory->setModel( $model );
+		$this->newModel();
+		$this->factory->setModel( $this->model );
 
-		$this->assertSame( $model, $this->factory->getModel() );
+		$this->assertSame( $this->model, $this->factory->getModel() );
 		$this->assertInstanceOf(Model::class, $this->factory->getModel());
+	}
+
+	/** @test */
+	public function can_use_save_model()
+	{
+		$this->newModel();
+		$this->factory->saveModel($this->model);
+
+		$this->assertSame('saving', $this->factory->scenario);
+	}
+
+	/** @test */
+	public function can_use_delete_model()
+	{
+		$this->newModel();
+		$this->factory->deleteModel($this->model);
+		$this->assertSame('deleting', $this->factory->scenario);
 	}
 
 	/** @test */
@@ -157,7 +186,7 @@ Class ModelFactoryTest extends TestCase{
 	}
 
 	/** @test */
-	function the_job_has_been_done_correctly_and_success_handler_was_executed()
+	function the_saving_job_has_been_done_correctly_and_success_handler_was_executed()
 	{
 	    $handler = (new CallbackHandler())
 	    			->registerDoneCallback(function($factory){
@@ -168,27 +197,50 @@ Class ModelFactoryTest extends TestCase{
 	    $failureHandler = (new CallbackHandler())
 		    			->registerDoneCallback(function($factory, $exception){
 		    				$this->assertInstanceOf(ModelFactory::class, $factory);
-		    				$this->assertInstanceOf(Exception::class, $exception);
+		    				$this->assertInstanceOf(ErrorException::class, $exception);
 		    				$this->assertEquals("exception throwed", $exception->getMessage());
 		    				return 'failure';
 		    			});
 
+		$this->newModel();
 	    $result = $this->factory
 	    				->setSuccessHandler( $handler )
-	    				->setFailureHandler( $failureHandler )
+						->setFailureHandler( $failureHandler )
+						->saveModel( $this->model )
 	    				->doTheJob();
 
-	    $this->assertEquals('success', $result);
+		$this->assertEquals('success', $result);
 
-	    $this->factory->expects($this->any())
-			 ->method('theJob')
-			 ->will($this->throwException( new Exception("exception throwed") ));
 
+		$this->newModel(false);
 		$result = $this->factory
 	    				->setSuccessHandler( $handler )
-	    				->setFailureHandler( $failureHandler )
+						->setFailureHandler( $failureHandler )
+						->saveModel($this->model)
 	    				->doTheJob();
 
 	    $this->assertEquals('failure', $result);
+	}
+
+	/** @test */
+	public function the_deletion_job_has_been_done_correctly_and_success_handler_was_executed()
+	{
+
+		$handler = (new CallbackHandler())
+			->registerDoneCallback(function ($factory) {
+				$this->assertInstanceOf(ModelFactory::class, $factory);
+				return 'success';
+			});
+
+		$failureHandler = new CallbackHandler();
+
+		$this->newModel();
+		$result = $this->factory
+			->setSuccessHandler($handler)
+			->setFailureHandler($failureHandler)
+			->deleteModel($this->model)
+			->doTheJob();
+
+		$this->assertEquals('success', $result);
 	}
 }

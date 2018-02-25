@@ -2,10 +2,11 @@
 
 namespace Helilabs\Capital\Factory;
 
+use Illuminate\Database\Eloquent\Model;
 use Helilabs\Capital\Helpers\CallbackHandler;
 use Helilabs\Capital\Exceptions\JsonException;
 
-abstract Class ModelFactory implements ModelFactoryContract{
+Class ModelFactory implements ModelFactoryContract{
 
 	/**
 	 * web or api
@@ -68,6 +69,13 @@ abstract Class ModelFactory implements ModelFactoryContract{
 	 */
 	private $errors;
 
+	/**
+	 * current factory scenario default to saving, options saving deletion
+	 *
+	 * @var string
+	 */
+	public $scenario = 'saving';
+
 	public function __construct($validator = null){
 		$this->additionalArgs = collect([
 				'action' => 'new',
@@ -87,10 +95,36 @@ abstract Class ModelFactory implements ModelFactoryContract{
 
 	/**
 	 * use this instead of findOrCreateModel to pass model from outsite Curd
-	 * @param HeliLabs\Capital\AppBaseModel $model [description]
+	 * @param \Illuminate\Database\Eloquent\Model $model [description]
 	 */
-	public function setModel( $model ){
+	public function setModel(Model $model ){
 		$this->model = $model;
+		return $this;
+	}
+
+	/**
+	 * set current scenario to saving and set model
+	 *
+	 * @param \Illuminate\Database\Eloquent\Model $model
+	 * @return void
+	 */
+	public function saveModel(Model $model)
+	{
+		$this->scenario = 'saving';
+		$this->setModel($model);
+		return $this;
+	}
+
+	/**
+	 * set scenario to deleting and setModel
+	 *
+	 * @param \Illuminate\Database\Eloquent\Model $model
+	 * @return void
+	 */
+	public function deleteModel(Model $model)
+	{
+		$this->scenario = 'deleting';
+		$this->setModel($model);
 		return $this;
 	}
 
@@ -181,7 +215,11 @@ abstract Class ModelFactory implements ModelFactoryContract{
 		$handler = $this->successHandler->passArguments([$this]);
 
 		try{
-			$this->theJob();
+			if($this->scenario == 'deleting'){
+				$this->theDeleteJob();
+			}else{
+				$this->theJob();
+			}
 		}catch(\Exception $e){
 			$handler = $this->failureHandler->passArguments([$this, $e]);
 		}
@@ -253,6 +291,25 @@ abstract Class ModelFactory implements ModelFactoryContract{
 		return [];
 	}
 
-	public abstract function theJob();
+	/**
+	 * Saving Model Logic
+	 * * since most models has simple way of deleting we made this method not abstract
+	 *
+	 * @return void
+	 */
+	public function theJob(){
+		$this->model->fill( $this->args->only($this->model->fillable)->all() );
+		$this->model->save();
+	}
+
+	/**
+	 * Delete Model Logic
+	 * since most models has simple way of deleting we made this method not abstract
+	 *
+	 * @return void
+	 */
+	public function theDeleteJob(){
+		$this->model->delete();
+	}
 
 }
