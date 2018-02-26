@@ -1,0 +1,62 @@
+<?php
+
+namespace DummyNamespace;
+
+use DB;
+use Helilabs\Capital\Factory\ModelFactory;
+
+Class DummyClass extends ModelFactory{
+
+    /**
+     * validation rules
+     *
+     * @return array
+     */
+    public function rules()
+    {
+         if( $this->scenario == 'deleting' ){
+             return [];
+         }
+
+         return [
+            'title' => 'required' // example rule
+         ];
+    }
+
+    /**
+     * the saving Job
+     *
+     * @return void
+     */
+    public function theJob()
+    {
+        DB::beginTransaction();
+        try{
+            $this->model->fill( $this->args->only($this->model->fillable)->all() );
+            $this->model->save();
+
+            DB::commit();
+        }catch(\Exception $e){
+            DB::rollback();
+            throw $e;
+        }
+    }
+
+    /**
+     * the deletion job
+     *
+     * @return void
+     */
+    public function theDeleteJob()
+    {
+        DB::beginTransaction();
+        try {
+            $this->model->delete();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+            throw $e;
+        }
+    }
+
+}

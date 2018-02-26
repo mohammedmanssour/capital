@@ -1,0 +1,89 @@
+<?php
+
+namespace DummyNamespace;
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+
+Class DummyClass extends Controller
+{
+    /**
+     * DummyModelsRepository Implementation
+     *
+     * @var DummyModelsRepository
+     */
+    private $dummyModels;
+
+    /**
+     * create new instance
+     */
+    public function __construct(DummyModelsRepository $dummyModels)
+    {
+        $this->dummyModels = $dummyModels;
+    }
+
+    /**
+     * fetch the required resources from database
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $models = $this->dummyModels->paginate(20);
+
+        return response()->json(
+            $models
+            ,200
+        );
+    }
+
+    /**
+     * store resource in database
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param DummyModelFactory $dummyModelFactory
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request, DummyModelFactory $dummyModelFactory )
+    {
+        return modelFactory($request, $dummyModelFactory, 'saving', new DummyModel, ['action' => 'store']);
+    }
+
+    /**
+     * update resource in database
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param DummyModelFactory $dummyModelFactory
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, DummyModelFactory $dummyModelFactory )
+    {
+        return modelFactory($request, $dummyModelFactory, 'saving', $this->findModel($request), ['action' => 'update']);
+    }
+
+    /**
+     * delete resource from database
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param DummyModelFactory $dummyModelFactory
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Request $request, DummyModelFactory $dummyModelFactory)
+    {
+        return modelFactory($request, $dummyModelFactory, 'deleting', $this->findModel($request), ['action' => 'delete']);
+    }
+
+    /**
+     * fetch the specified Model from database
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return DummyModel
+     */
+    private function findModel(Request $request)
+    {
+        $model = $this->dummyModels->where('id', $request->dummyModel)->first();
+        abort_if(!$model, 404 ,'Not Found');
+        return $model;
+    }
+
+}

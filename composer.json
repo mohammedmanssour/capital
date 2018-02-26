@@ -12,7 +12,10 @@
     "autoload": {
         "psr-4": {
             "Helilabs\\Capital\\": "src/"
-        }
+        },
+        "files": [
+            "src/Helpers/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
@@ -25,6 +28,12 @@
     "require-dev": {
         "mockery/mockery": "dev-master",
         "phpunit/phpunit": "4.8.*"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Helilabs\\Capital\\Providers\\CapitalServiceProvider"
+            ]
+        }
     }
-
 }

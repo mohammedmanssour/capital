@@ -1,0 +1,14 @@
+<?php
+
+namespace DummyNamespace;
+
+use Helilabs\Capital\Repository\BaseRepository;
+
+Class DummyClass extends BaseRepository{
+
+    public function __construct(DummyModel $query)
+    {
+        $this->query = $query;
+    }
+
+}
