@@ -56,7 +56,15 @@ Class CallbackHandler{
 		return $this;
 	}
 
-
+	/**
+	 * check if current CallbackHandler has done callback
+	 *
+	 * @return boolean
+	 */
+	public function hasDoneCallback()
+	{
+		return $this->doneCallback ? true : false;
+	}
 	/**
 	 * arguments to be passed to callbacks
 	 * @param  array  $arguments

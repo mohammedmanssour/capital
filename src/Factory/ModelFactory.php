@@ -209,7 +209,7 @@ Class ModelFactory implements ModelFactoryContract{
 
 		//validation is considered a part of the creating/updaing process
 		if( $this->validate && !$this->validate() ){
-			return $this->failureHandler->passArguments([$this, new JsonException($this->errors())])->handle();
+			return $this->failureHandler->passArguments([$this, new JsonException($this->errors()->all())])->handle();
 		}
 
 		$handler = $this->successHandler->passArguments([$this]);

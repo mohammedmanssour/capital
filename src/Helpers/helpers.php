@@ -40,20 +40,24 @@ if (!function_exists('modelFactory')) {
      */
     function modelFactory(Request $request, ModelFactory $modelFactory, $scenario ,Model $model, $additionalArgs = [], $successHandler = null, $failureHandler = null)
     {
-        $successHandler = $successHandler ? : (new CallbackHandler);
-        $successHandler->registerDoneCallback(function ($factory) {
-            return response()->json(['meta' => generate_meta('success')], 200);
-        });
+        $successHandler = $successHandler ?: (new CallbackHandler);
+        if(!$successHandler->hasDoneCallback()){
+            $successHandler->registerDoneCallback(function ($factory) {
+                return response()->json(['meta' => generate_meta('success')], 200);
+            });
+        }
 
-        $failureHandler = $failureHandler ? : (new CallbackHandler);
-        $failureHandler->registerDoneCallback(function ($factory, $exception) {
-            if ($exception instanceof JsonException) {
-                $message = $exception->getDecodedMessage();
-            } else {
-                $message = $exception->getMessage();
-            }
-            return response()->json(['meta' => generate_meta('failure', $message)], 200);
-        });
+        $failureHandler = $failureHandler ?: (new CallbackHandler);
+        if(!$failureHandler->hasDoneCallback()){
+            $failureHandler->registerDoneCallback(function ($factory, $exception) {
+                if ($exception instanceof JsonException) {
+                    $message = $exception->getDecodedMessage();
+                } else {
+                    $message = $exception->getMessage();
+                }
+                return response()->json(['meta' => generate_meta('failure', $message)], 200);
+            });
+        }
 
         $modelFactory->setArgs($request->all())
             ->setAdditionalArgs($additionalArgs)

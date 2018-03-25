@@ -63,10 +63,14 @@ class CallbackHandlerTest extends TestCase
     {
         $handler = new CallbackHandler;
 
+		$this->assertFalse($handler->hasDoneCallback());
+
         $result = $handler->registerCallback(function(){})
 		        		->registerDoneCallback(function(){
 		        			return 'doneCallback';
-		        		})->handle();
+						})->handle();
+
+		$this->assertTrue($handler->hasDoneCallback());
 
 		$this->assertEquals('doneCallback', $result);
     }
